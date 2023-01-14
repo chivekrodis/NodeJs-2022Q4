@@ -1,0 +1,32 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "task1:prod": "npm run task1:build && node ./dist/task-1.cjs",
+    "task2:prod": "npm run task2:build && node ./dist/task-2.cjs",
+    "task1:build": "babel ./src/task-1/task-1.mjs --out-file dist/task-1.cjs",
+    "task2:build": "babel ./src/task-2/task-2.mjs --out-file dist/task-2.cjs && babel ./src/task-2/csv --out-dir dist/csv --copy-files",
+    "task1": "nodemon --exec babel-node ./src/task-1/task-1.mjs",
+    "task2": "nodemon --exec babel-node ./src/task-2/task-2.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csvtojson": "2.0.10"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.5",
+    "@babel/node": "^7.20.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.19.6",
+    "@babel/preset-env": "^7.20.2",
+    "babel-plugin-transform-import-meta": "^2.2.0",
+    "nodemon": "2.0.20"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

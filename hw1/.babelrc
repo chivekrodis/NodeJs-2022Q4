@@ -1,0 +1,8 @@
+{
+    "presets": ["@babel/preset-env"],
+    "plugins": [
+        "@babel/plugin-transform-modules-commonjs",
+        "babel-plugin-transform-import-meta"
+    ],
+    "targets": "node 12.0"
+}
