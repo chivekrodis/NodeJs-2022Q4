@@ -1,11 +1,40 @@
 import { DB } from './db';
 import { ISuggestParams, IUser, IUserToUpdate } from './user.model';
 
-const getAll = (): IUser[] => DB.getAll();
-const getById = (id: string): IUser | undefined => DB.getById(id);
-const createUser = (newUserData: IUser): IUser => DB.createUser(newUserData);
-const updateUser = (id: string, data: IUserToUpdate): IUser | undefined => DB.updateUser(id, data);
-const deleteUser = (id: string): string | undefined => DB.deleteUser(id);
-const getAutoSuggestUser = ({ query, limit }: ISuggestParams): IUser[] => DB.getAutoSuggestUser({ query, limit });
+const getAll = async () => await DB.getAll();
+const getById = async (id: string) => await DB.getById(id);
+const createUser = async (newUserData: IUser) => await DB.createUser(newUserData);
+const updateUser = async (id: string, data: IUserToUpdate) => {
+  const { login, password, age } = data;
+
+  const updatedUser = {
+    ...data,
+    ...(login && { login }),
+    ...(age && { age }),
+    ...(password && { password }),
+  };
+
+  await DB.updateUser(id, data);
+
+  delete updatedUser?.password;
+
+  return updatedUser;
+};
+const deleteUser = async (id: string): Promise<string | null> => {
+  const user = await getById(id);
+
+  if (!user || user?.isDeleted) {
+    return null;
+  }
+
+  await DB.deleteUser(id);
+
+  return id;
+};
+const getAutoSuggestUser = ({ query, limit }: ISuggestParams) => {
+  const searchLimit = limit || '10';
+
+  return DB.getAutoSuggestUser({ query, limit: searchLimit });
+};
 
 export const userService = { getAll, getById, createUser, updateUser, deleteUser, getAutoSuggestUser };

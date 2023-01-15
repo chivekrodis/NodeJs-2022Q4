@@ -1,6 +1,7 @@
-import { omit } from '../../utils';
 import { v4 as uuidv4 } from 'uuid';
 import * as z from 'zod';
+import { Request } from 'express';
+import { UserModel } from '../../models/user.model';
 
 export const UserSchema = z.object({
   id: z.string().uuid().optional().default(uuidv4()),
@@ -18,10 +19,13 @@ export const UpdateUserSchema = UserSchema.partial().refine((data) => Object.key
 
 export const SuggestSchema = z.object({
   query: z.string().min(1),
-  limit: z.number().optional().default(10),
+  limit: z.string().optional().default('10'),
 });
 
-export type IUser = z.infer<typeof UserSchema>;
+export type IUser = Pick<UserModel, 'id' | 'login' | 'age' | 'password' | 'isDeleted'>;
+export type IUserRequest = {
+  user?: UserModel;
+} & Request;
 export type IUserToResponseUser = Omit<IUser, 'password' | 'isDeleted'>;
 export type IUserToUpdate = z.infer<typeof UpdateUserSchema>;
 export type ISuggestParams = z.infer<typeof SuggestSchema>;
@@ -39,9 +43,5 @@ export class User {
     this.password = password;
     this.age = age;
     this.isDeleted = isDeleted;
-  }
-
-  static toResponse(userData: IUser): IUserToResponseUser {
-    return omit(userData, ['password', 'isDeleted']);
   }
 }

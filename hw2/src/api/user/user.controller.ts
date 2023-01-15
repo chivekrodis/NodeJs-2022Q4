@@ -1,90 +1,100 @@
-import { Router, Request, Response } from 'express';
-import { ZodError } from 'zod';
-import { IError } from '../../types/error.model';
-import { getValidationErrors } from '../../utils';
-import { IUserToResponseUser, SuggestSchema, UpdateUserSchema, User, UserSchema } from './user.model';
+import { Router, Request, Response, NextFunction } from 'express';
+import { isUUID } from '../../utils';
+import { ISuggestParams, IUserRequest, IUserToResponseUser } from './user.model';
 import { userService } from './user.service';
+import { userSchemaValidation } from './user.validation';
 
 const router = Router();
 
-router.get('/', (_, res: Response<IUserToResponseUser[]>) => {
-  const users = userService.getAll();
+router.get('/', async (req: Request, res: Response<IUserToResponseUser[]>) => {
+  const users = await userService.getAll();
 
-  res.json(users.map(User.toResponse));
+  res.json(users);
 });
+
+router.get(
+  '/suggestion',
+  userSchemaValidation.suggestUserSchema,
+  async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+    try {
+      const {
+        query: { query: queryString, limit },
+      } = req;
+      const suggestQuery = { query: queryString, limit } as ISuggestParams;
+
+      const users = await userService.getAutoSuggestUser(suggestQuery);
+
+      res.send(users);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  },
+);
+
+router.post(
+  '/',
+  userSchemaValidation.createUserSchema,
+  async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+    try {
+      const newUser = await userService.createUser(req.body);
+
+      res.status(201).send(newUser);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  },
+);
 
 router
-  .get('/suggestion', (req: Request, res: Response<IUserToResponseUser | IError[] | unknown>) => {
+  .param('userId', async (req: IUserRequest, res: Response, next: NextFunction, id: string) => {
     try {
-      const validateInput = SuggestSchema.parse(req.body);
-
-      const users = userService.getAutoSuggestUser(validateInput);
-
-      res.send(users.map(User.toResponse));
-    } catch (error) {
-      if (error instanceof ZodError) {
-        res.status(400).send(getValidationErrors(error));
-      } else {
-        res.send(error);
+      if (!isUUID(id)) {
+        res.send('Param is not UUID');
       }
+
+      const user = await userService.getById(id);
+
+      if (user) {
+        req.user = user;
+      } else {
+        return res.status(404).send('Not found');
+      }
+
+      return next();
+    } catch (error) {
+      res.send(error);
     }
   })
-  .get('/:userId', (req: Request, res: Response<IUserToResponseUser | string>) => {
-    const { userId } = req.params;
-    const user = userService.getById(userId);
+  .get('/:userId', async (req: IUserRequest, res: Response<IUserToResponseUser | string>) => {
+    const { user } = req;
 
-    if (user) {
-      res.json(User.toResponse(user));
-    } else {
-      res.status(404).send('Not found');
+    res.json(user);
+  })
+  .put(
+    '/:userId',
+    userSchemaValidation.updateUserSchema,
+    async (req: IUserRequest, res: Response<IUserToResponseUser | unknown>) => {
+      try {
+        const {
+          user,
+          params: { userId },
+        } = req;
+
+        const updatedData = await userService.updateUser(userId, { ...user?.toJSON(), ...req.body });
+
+        res.send(updatedData);
+      } catch (error) {
+        res.status(400).send(error);
+      }
+    },
+  )
+  .delete('/:userId', async (req: IUserRequest, res: Response<string>) => {
+    const { userId } = req.params;
+    const deletedUserId = await userService.deleteUser(userId);
+
+    if (deletedUserId) {
+      res.send(deletedUserId);
     }
   });
-
-router.post('/', (req: Request, res: Response<IUserToResponseUser | IError[] | unknown>) => {
-  try {
-    const validateUser = UserSchema.parse(req.body);
-    userService.createUser(validateUser);
-
-    res.status(201).send(User.toResponse(validateUser));
-  } catch (error) {
-    if (error instanceof ZodError) {
-      res.status(400).send(getValidationErrors(error));
-    } else {
-      res.send(error);
-    }
-  }
-});
-
-router.put('/:userId', (req: Request, res: Response<IUserToResponseUser | IError[] | unknown>) => {
-  try {
-    const { userId } = req.params;
-    const validateUser = UpdateUserSchema.parse(req.body);
-
-    const updatedData = userService.updateUser(userId, validateUser);
-
-    if (!updatedData) {
-      res.status(404).send('Not found');
-    } else {
-      res.send(User.toResponse(updatedData));
-    }
-  } catch (error) {
-    if (error instanceof ZodError) {
-      res.status(400).send(getValidationErrors(error));
-    } else {
-      res.send(error);
-    }
-  }
-});
-
-router.delete('/:userId', (req: Request, res: Response<string>) => {
-  const { userId } = req.params;
-  const deletedUserId = userService.deleteUser(userId);
-
-  if (deletedUserId) {
-    res.send(deletedUserId);
-  } else {
-    res.status(404).send('Not found');
-  }
-});
 
 export const userRouter = router;
