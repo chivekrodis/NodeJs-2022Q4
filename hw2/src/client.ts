@@ -16,6 +16,10 @@ export const connectToDb = async (fn: () => void) => {
     console.info('[DB]: Connection has been established successfully.');
 
     fn();
+
+    process.on('exit', () => {
+      client.close();
+    });
   } catch (error) {
     console.error('Unable to connect to the database:', error);
   }
