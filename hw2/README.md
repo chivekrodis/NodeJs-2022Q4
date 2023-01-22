@@ -22,3 +22,12 @@ npm run build:prod
 
 npm run start
 ```
+### To seed DB run command:
+```bash
+npm run seed
+```
+
+### To clear DB run command:
+```bash
+npm run seed:undo
+```
