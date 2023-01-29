@@ -1,1 +1,2 @@
-export { Users } from './user.model';
+export { Users, UserModel } from './user.model';
+export { Groups, GroupModel } from './group.model';
