@@ -1,6 +1,8 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Transactionable } from 'sequelize';
 import { IUser } from '../api/user/user.model';
 import { client } from '../client';
+import { Groups } from './group.model';
+import { UserGroupModel, UserGroups } from './userGroup.model';
 
 export class UserModel extends Model<Partial<IUser>> {
   declare id: string;
@@ -8,6 +10,9 @@ export class UserModel extends Model<Partial<IUser>> {
   declare password: string;
   declare age: number;
   declare isDeleted: boolean;
+  declare addGroups: (id: string, { transaction }: Transactionable) => void;
+  declare getGroups: () => UserGroupModel[];
+  declare removeGroups: (id: string, { transaction }: Transactionable) => void;
 }
 
 export const Users = client.define<UserModel>(
@@ -58,3 +63,6 @@ export const Users = client.define<UserModel>(
     },
   },
 );
+
+Users.belongsToMany(Groups, { through: UserGroups, foreignKey: 'userId', otherKey: 'groupId' });
+Groups.belongsToMany(Users, { through: UserGroups, foreignKey: 'groupId', otherKey: 'userId' });

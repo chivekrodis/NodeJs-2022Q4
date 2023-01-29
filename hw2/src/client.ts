@@ -1,6 +1,5 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
-import { Users, Groups } from './models';
 
 dotenv.config();
 
@@ -11,8 +10,7 @@ export const client = new Sequelize(connectionString);
 export const connectToDb = async (fn: () => void) => {
   try {
     await client.authenticate();
-    await Users.sync();
-    await Groups.sync();
+    await client.sync({ alter: true });
 
     console.info('[DB]: Connection has been established successfully.');
 

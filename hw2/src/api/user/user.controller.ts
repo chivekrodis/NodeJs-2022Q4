@@ -31,19 +31,33 @@ router.get(
   },
 );
 
-router.post(
-  '/',
-  userSchemaValidation.createUserSchema,
-  async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+router
+  .post('/addUsersToGroup', async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
     try {
-      const newUser = await userService.createUser(req.body);
+      const {
+        body: { userIds, groupId },
+      } = req;
 
-      res.status(201).send(newUser);
+      const response = await userService.addUsersToGroup(groupId as string, userIds as string[]);
+
+      res.status(201).send(response);
     } catch (error) {
       res.status(400).send(error);
     }
-  },
-);
+  })
+  .post(
+    '/',
+    userSchemaValidation.createUserSchema,
+    async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+      try {
+        const newUser = await userService.createUser(req.body);
+
+        res.status(201).send(newUser);
+      } catch (error) {
+        res.status(400).send(error);
+      }
+    },
+  );
 
 router
   .param('userId', async (req: IUserRequest, res: Response, next: NextFunction, id: string) => {

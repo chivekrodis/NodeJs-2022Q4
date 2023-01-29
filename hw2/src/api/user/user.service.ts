@@ -36,5 +36,7 @@ const getAutoSuggestUser = ({ query, limit }: ISuggestParams) => {
 
   return DB.getAutoSuggestUser({ query, limit: searchLimit });
 };
+const addUsersToGroup = async (groupId: string, userIds: string[]): Promise<{ success: boolean; message?: string }> =>
+  await DB.addUsersToGroup(groupId, userIds);
 
-export const userService = { getAll, getById, createUser, updateUser, deleteUser, getAutoSuggestUser };
+export const userService = { getAll, getById, createUser, updateUser, deleteUser, getAutoSuggestUser, addUsersToGroup };
