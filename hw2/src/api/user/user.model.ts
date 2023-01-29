@@ -29,19 +29,3 @@ export type IUserRequest = {
 export type IUserToResponseUser = Omit<IUser, 'password' | 'isDeleted'>;
 export type IUserToUpdate = z.infer<typeof UpdateUserSchema>;
 export type ISuggestParams = z.infer<typeof SuggestSchema>;
-
-export class User {
-  id: string;
-  login: string;
-  password: string;
-  age: number;
-  isDeleted: boolean;
-
-  constructor({ id = uuidv4(), login, password, age, isDeleted = false }: IUser) {
-    this.id = id;
-    this.login = login;
-    this.password = password;
-    this.age = age;
-    this.isDeleted = isDeleted;
-  }
-}

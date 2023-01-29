@@ -65,7 +65,7 @@ router
       res.send(error);
     }
   })
-  .get('/:userId', async (req: IUserRequest, res: Response<IUserToResponseUser | string>) => {
+  .get('/:userId', async (req: IUserRequest, res: Response<IUserToResponseUser>) => {
     const { user } = req;
 
     res.json(user);
