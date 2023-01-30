@@ -34,7 +34,7 @@ const deleteUser = async (id: string): Promise<void> => {
       }
     }
 
-    await Users.update({ isDeleted: true }, { where: { id } });
+    await Users.update({ isDeleted: true }, { where: { id }, transaction: t });
 
     t.commit();
   } catch (error) {
