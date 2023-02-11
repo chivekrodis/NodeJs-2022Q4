@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 import { validate as uuidValidate } from 'uuid';
-import { IError } from '../types/error.model';
+import { IError } from '../types';
 
 export const getValidationErrors = (errors: ZodError): IError[] => {
   const { issues } = errors;
