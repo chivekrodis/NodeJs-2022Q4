@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { asyncErrorHandler, asyncErrorHandlerWithParams, CreateError } from '../../common';
 import { isUUID } from '../../utils';
 import { ISuggestParams, IUserRequest, IUserToResponseUser } from './user.model';
 import { userService } from './user.service';
@@ -6,34 +7,34 @@ import { userSchemaValidation } from './user.validation';
 
 const router = Router();
 
-router.get('/', async (req: Request, res: Response<IUserToResponseUser[]>) => {
-  const users = await userService.getAll();
+router.get(
+  '/',
+  asyncErrorHandler(async (req: Request, res: Response<IUserToResponseUser[]>) => {
+    const users = await userService.getAll();
 
-  res.json(users);
-});
+    res.json(users);
+  }),
+);
 
 router.get(
   '/suggestion',
   userSchemaValidation.suggestUserSchema,
-  async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
-    try {
-      const {
-        query: { query: queryString, limit },
-      } = req;
-      const suggestQuery = { query: queryString, limit } as ISuggestParams;
+  asyncErrorHandler(async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+    const {
+      query: { query: queryString, limit },
+    } = req;
+    const suggestQuery = { query: queryString, limit } as ISuggestParams;
 
-      const users = await userService.getAutoSuggestUser(suggestQuery);
+    const users = await userService.getAutoSuggestUser(suggestQuery);
 
-      res.send(users);
-    } catch (error) {
-      res.status(400).send(error);
-    }
-  },
+    res.send(users);
+  }),
 );
 
 router
-  .post('/addUsersToGroup', async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
-    try {
+  .post(
+    '/addUsersToGroup',
+    asyncErrorHandler(async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
       const {
         body: { userIds, groupId },
       } = req;
@@ -41,29 +42,24 @@ router
       const response = await userService.addUsersToGroup(groupId as string, userIds as string[]);
 
       res.status(201).send(response);
-    } catch (error) {
-      res.status(400).send(error);
-    }
-  })
+    }),
+  )
   .post(
     '/',
     userSchemaValidation.createUserSchema,
-    async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
-      try {
-        const newUser = await userService.createUser(req.body);
+    asyncErrorHandler(async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
+      const newUser = await userService.createUser(req.body);
 
-        res.status(201).send(newUser);
-      } catch (error) {
-        res.status(400).send(error);
-      }
-    },
+      res.status(201).send(newUser);
+    }),
   );
 
 router
-  .param('userId', async (req: IUserRequest, res: Response, next: NextFunction, id: string) => {
-    try {
-      if (!isUUID(id)) {
-        res.send('Param is not UUID');
+  .param(
+    'userId',
+    asyncErrorHandlerWithParams(async (req: IUserRequest, res: Response, next: NextFunction, id: string) => {
+      if (!id || !isUUID(id)) {
+        return res.send('Param is not UUID');
       }
 
       const user = await userService.getById(id);
@@ -71,44 +67,44 @@ router
       if (user) {
         req.user = user;
       } else {
-        return res.status(404).send('Not found');
+        throw new CreateError(404, 'Not found');
       }
 
       return next();
-    } catch (error) {
-      res.send(error);
-    }
-  })
-  .get('/:userId', async (req: IUserRequest, res: Response<IUserToResponseUser>) => {
-    const { user } = req;
+    }),
+  )
+  .get(
+    '/:userId',
+    asyncErrorHandler(async (req: IUserRequest, res: Response<IUserToResponseUser>) => {
+      const { user } = req;
 
-    res.json(user);
-  })
+      res.json(user);
+    }),
+  )
   .put(
     '/:userId',
     userSchemaValidation.updateUserSchema,
-    async (req: IUserRequest, res: Response<IUserToResponseUser | unknown>) => {
-      try {
-        const {
-          user,
-          params: { userId },
-        } = req;
+    asyncErrorHandler(async (req: IUserRequest, res: Response<IUserToResponseUser | unknown>) => {
+      const {
+        user,
+        params: { userId },
+      } = req;
 
-        const updatedData = await userService.updateUser(userId, { ...user?.toJSON(), ...req.body });
+      const updatedData = await userService.updateUser(userId, { ...user?.toJSON(), ...req.body });
 
-        res.send(updatedData);
-      } catch (error) {
-        res.status(400).send(error);
-      }
-    },
+      res.send(updatedData);
+    }),
   )
-  .delete('/:userId', async (req: IUserRequest, res: Response<string>) => {
-    const { userId } = req.params;
-    const deletedUserId = await userService.deleteUser(userId);
+  .delete(
+    '/:userId',
+    asyncErrorHandler(async (req: IUserRequest, res: Response<string>) => {
+      const { userId } = req.params;
+      const deletedUserId = await userService.deleteUser(userId);
 
-    if (deletedUserId) {
-      res.send(deletedUserId);
-    }
-  });
+      if (deletedUserId) {
+        res.send(deletedUserId);
+      }
+    }),
+  );
 
 export const userRouter = router;
