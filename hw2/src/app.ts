@@ -1,8 +1,11 @@
 import express, { Express, Response } from 'express';
+import cors from 'cors';
 import api from './api';
 import { logger, reqLogger, errorHandler } from './common';
 
 const app: Express = express();
+
+app.use(cors());
 
 app.use(express.json());
 
