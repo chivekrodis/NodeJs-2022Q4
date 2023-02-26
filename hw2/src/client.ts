@@ -5,7 +5,9 @@ dotenv.config();
 
 const connectionString: string = process.env.DATABASE_URL || '';
 
-export const client = new Sequelize(connectionString);
+export const client = new Sequelize(connectionString, {
+  logging: false,
+});
 
 export const connectToDb = async (fn: () => void) => {
   try {
