@@ -50,7 +50,11 @@ router
     asyncErrorHandler(async (req: Request, res: Response<IUserToResponseUser | unknown>) => {
       const newUser = await userService.createUser(req.body);
 
-      res.status(201).send(newUser);
+      if (newUser) {
+        res.status(201).send(newUser);
+      }
+
+      res.status(400).send('Login already exist');
     }),
   );
 
