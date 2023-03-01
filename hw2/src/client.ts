@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
+import { Users } from './models';
 
 dotenv.config();
 
@@ -13,6 +14,10 @@ export const connectToDb = async (fn: () => void) => {
   try {
     await client.authenticate();
     await client.sync({ alter: true });
+
+    await Users.findOrCreate({
+      where: { login: 'admin', password: 'admin', age: 20 },
+    });
 
     console.info('[DB]: Connection has been established successfully.');
 

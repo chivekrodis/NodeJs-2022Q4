@@ -40,3 +40,9 @@ npm run seed:undo
 
 Please keep in mind JWT token expires after 2 minutes. You will need to login again  
 To provide custom expire time add JWT_EXPIRE_TIME(in minutes) to .env
+
+DB have admin user with credentials:
+```
+login: admin
+password: admin
+```
