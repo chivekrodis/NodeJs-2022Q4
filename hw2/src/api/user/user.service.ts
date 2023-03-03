@@ -3,7 +3,16 @@ import { ISuggestParams, IUser, IUserToUpdate } from './user.model';
 
 const getAll = async () => await DB.getAll();
 const getById = async (id: string) => await DB.getById(id);
-const createUser = async (newUserData: IUser) => await DB.createUser(newUserData);
+const getByLogin = async (login: string) => await DB.getByLogin(login);
+const createUser = async (newUserData: IUser) => {
+  const isLoginTaken = await getByLogin(newUserData.login);
+
+  if (isLoginTaken) {
+    return null;
+  }
+
+  return await DB.createUser(newUserData);
+};
 const updateUser = async (id: string, data: IUserToUpdate) => {
   const { login, password, age } = data;
 

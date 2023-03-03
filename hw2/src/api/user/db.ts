@@ -8,6 +8,8 @@ const getAll = (): Promise<UserModel[]> => Users.findAll({ where: { isDeleted: f
 
 const getById = (id: string): Promise<UserModel | null> => Users.findOne({ where: { id }, plain: true });
 
+const getByLogin = (login: string): Promise<UserModel | null> => Users.findOne({ where: { login }, plain: true });
+
 const createUser = (newUserData: IUser): Promise<UserModel> => Users.create(newUserData);
 
 const updateUser = async (id: string, DTO: Partial<IUser>): Promise<void> => {
@@ -70,4 +72,13 @@ const addUsersToGroup = async (groupId: string, userIds: string[]): Promise<{ su
   }
 };
 
-export const DB = { getAll, getById, createUser, updateUser, deleteUser, getAutoSuggestUser, addUsersToGroup };
+export const DB = {
+  getAll,
+  getById,
+  getByLogin,
+  createUser,
+  updateUser,
+  deleteUser,
+  getAutoSuggestUser,
+  addUsersToGroup,
+};
