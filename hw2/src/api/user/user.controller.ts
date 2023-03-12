@@ -51,7 +51,7 @@ router
       const newUser = await userService.createUser(req.body);
 
       if (newUser) {
-        res.status(201).send(newUser);
+        return res.status(201).send(newUser);
       }
 
       res.status(400).send('Login already exist');
@@ -71,7 +71,7 @@ router
       if (user) {
         req.user = user;
       } else {
-        throw new CreateError(404, 'Not found');
+        return next(new CreateError(404, 'Not found'));
       }
 
       return next();

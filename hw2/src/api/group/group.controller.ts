@@ -39,7 +39,7 @@ router
       if (group) {
         req.group = group;
       } else {
-        throw new CreateError(404, 'Not found');
+        return next(new CreateError(404, 'Not found'));
       }
 
       return next();
