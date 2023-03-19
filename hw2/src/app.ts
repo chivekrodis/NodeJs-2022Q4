@@ -2,6 +2,7 @@ import express, { Express, Response } from 'express';
 import cors from 'cors';
 import api from './api';
 import { logger, reqLogger, errorHandler } from './common';
+import { API_VERSION } from './constants';
 
 const app: Express = express();
 
@@ -15,7 +16,7 @@ app.get('/', (_, res: Response<string>) => {
   res.json('Hello World');
 });
 
-app.use('/api/v1', api);
+app.use(API_VERSION, api);
 
 app.use(errorHandler);
 
